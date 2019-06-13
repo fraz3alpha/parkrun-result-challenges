@@ -71,17 +71,34 @@ function add_table_break_row(table, title, help) {
 function add_challenges_to_table(table, challenge_results_type, data) {
   // console.log(data)
    var ui_challenge_generation_duration = 0
+   var challenge_visibility = ""
 
    data.challenge_results[challenge_results_type].forEach(function (challenge) {
-       // console.log("Generating table rows for " + challenge.shortname)
-       var start_time = new Date()
-       if (challenge.shortname == 'regionnaire') {
-           generate_regionnaire_table_entry(challenge, table, data)
-       } else {
-           generate_standard_table_entry(challenge, table, data)
-       }
-       var duration = new Date() - start_time
-       ui_challenge_generation_duration += duration
+       //console.log("Generating table rows for " + challenge.shortname)
+	   
+	   challenge_visibility = "Expanded"
+	   if (has_visibility_choices(data)) {
+			challenge_visibility = data.user_data.visibility_choices[challenge.shortname]
+			//console.log(challenge.shortname+": "+challenge_visibility)
+		}
+		   
+	   var start_time = new Date()
+	   if (challenge.shortname == 'regionnaire') {
+		   generate_regionnaire_table_entry(challenge, table, data)
+	   } else {
+		   generate_standard_table_entry(challenge, table, data)
+	   }
+	   var duration = new Date() - start_time
+	   ui_challenge_generation_duration += duration
+	   
+	   	if (challenge_visibility == 'Collapsed') {
+			$("tbody[id=challenge_tbody_content_"+challenge['shortname']+"]").toggle()
+		}
+		
+	   if (challenge_visibility == 'Hidden') {
+		   $("tbody[id=challenge_tbody_header_"+challenge['shortname']+"]").toggle()
+		   $("tbody[id=challenge_tbody_content_"+challenge['shortname']+"]").toggle()
+	   }
        // console.log("Completed generating table rows for " + challenge.shortname + " in " + duration + "ms")
 
    });

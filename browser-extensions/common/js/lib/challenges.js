@@ -75,7 +75,7 @@ function generate_running_challenge_data(data) {
       "name": "Tourist",
       "data": 20,
       "help": "Run at 20+ different parkrun locations anywhere in the world."}))
-    challenge_data.push(challenge_tourist(data, {
+	challenge_data.push(challenge_tourist(data, {
       "shortname": "cowell-club",
       "name": "Cowell Club",
       "data": 100,
@@ -1528,6 +1528,19 @@ function get_home_parkrun(data) {
   return undefined
 }
 
+// Return true if there are visibility choices for challenges set
+function has_visibility_choices(data) {
+  var vis_choices = get_visibility_choices(data)
+  return vis_choices !== undefined
+}
+
+function get_visibility_choices(data) {
+  if (data.user_data !== undefined) {
+    return data.user_data.visibility_choices
+  }
+  return undefined
+}
+
 function has_lat_lon(details) {
   return details.lat !== undefined && details.lon !== undefined
 }
@@ -1727,7 +1740,7 @@ function challenge_on_dates(data, params) {
         }
 
         if (applicable_day && applicable_month) {
-          console.log("Event matches both day & month for : " + JSON.stringify(this_challenge_date) + " - " + JSON.stringify(parkrun_event))
+          //console.log("Event matches both day & month for : " + JSON.stringify(this_challenge_date) + " - " + JSON.stringify(parkrun_event))
           // Append this completed parkrun to the correct subpart list
           o.subparts[index].push(parkrun_event)
         }

@@ -404,7 +404,7 @@ parsed_results_data = parse_results_table()
 set_progress_message("Parsed Results")
 
 set_progress_message("Loading saved data")
-browser.storage.local.get(["home_parkrun_info", "athlete_number"]).then((items) => {
+browser.storage.local.get().then((items) => {
   set_progress_message("Loaded saved data")
   loaded_user_data = items
   // console.log("Here is the stored items, fetched with a promise:")

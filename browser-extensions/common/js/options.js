@@ -1,5 +1,28 @@
 var geo_data = null
 var saved_options = {}
+var challenges = {
+	"tourist": ["Tourist", "World"],
+	"cowell-club": ["Cowell Club", "World"],
+	"alphabeteer": ["Alphabeteer", "World"],
+	"single-ton": ["Single-ton", "World"],
+	"double-ton": ["Double-ton", "World"],
+	"stopwatch-bingo": ["Stopwatch Bingo", "World"],
+	"pirates": ["Pirates!", "World"],
+	"stayin-alive": ["Stayin' Alive", "World"],
+	"compass-club": ["Compass Club", "World"],
+	"full-ponty": ["The Full Ponty", "UK"],
+	"pilgrimage": ["Bushy Pilgrimage", "UK"],
+	"christmas-day": ["Christmas Day", "World"],
+	"nyd-double": ["NYD Double", "World"],
+	"groundhog-day": ["Groundhog Day", "World"],
+	"all-weather-runner": ["All Weather Runner", "World"],
+	"obsessive-bronze": ["Bronze Level Obsessive", "World"],
+	"obsessive-silver": ["Silver Level Obsessive", "World"],
+	"obsessive-gold": ["Gold Level Obsessive", "World"],
+	"regionnaire": ["Regionnaire", "World"]
+}
+
+var challenge_shortnames = []
 
 function initial_page_setup() {
 
@@ -20,6 +43,9 @@ function initial_page_setup() {
     $('#athlete_home_parkrun').change(function() {
         update_home_parkrun_country()
     })
+	
+	// Generate the visibility choices table
+	create_visibility_table()
     // Attach handler to catch when the beta checkbox is enabled, which
     // will allow us to set the extra information text
     // $('#enable_beta_features').change(function() {
@@ -101,8 +127,15 @@ function get_home_parkrun_info(parkrun_event_name) {
 function save_user_configuration() {
     console.log('save_user_configuration()')
 
-    var athlete_number = $('#athlete_number').val();
+	var athlete_number = $('#athlete_number').val();
     var athlete_home_parkrun = $('#athlete_home_parkrun').val();
+	var visibility_choices = {};
+	
+	for (var i = 0, len = challenge_shortnames.length; i < len; i++) {
+		var shortname = challenge_shortnames[i];
+		visibility_choices[shortname] = $('#visible_'+shortname).val();
+	}
+	
     // var enable_beta_features_checked = $('#enable_beta_features').prop('checked');
 
     // Build up our information that we want to save.
@@ -110,14 +143,15 @@ function save_user_configuration() {
     var saved_data = {
         athlete_number: athlete_number,
         home_parkrun_info: get_home_parkrun_info(athlete_home_parkrun),
-        // enable_beta_features: enable_beta_features_checked
+		visibility_choices: visibility_choices
+		// enable_beta_features: enable_beta_features_checked
     }
 
     // Store it on the page for future use
     saved_options = saved_data
     update_home_parkrun_country()
 
-    console.log('Saving: '+JSON.stringify(saved_data))
+    //console.log('Saving: '+JSON.stringify(saved_data))
 
     browser.storage.local.set(saved_data).then(function() {
         // Update status to let user know options were saved.
@@ -135,16 +169,17 @@ function load_user_configuration() {
     browser.storage.local.get({
         athlete_number: '',
         home_parkrun_info: {},
+		visibility_choices: {},
         // enable_beta_features: false
     }).then(function(items) {
         // Store it on the page for future use
         saved_options = items
-        console.log('Loaded: '+JSON.stringify(items))
+        console.log('Loaded: '+JSON.stringify(items));
         $('#athlete_number').val(items.athlete_number);
         // Update the home parkrun dropdown with the loaded value, if present
         update_home_parkrun_dropdown()
         // update_enable_beta_features_checkbox(items.enable_beta_features)
-
+		update_visibility_table(items)
     });
 }
 
@@ -267,6 +302,93 @@ function update_home_parkrun_dropdown() {
 
     }
     update_home_parkrun_country()
+}
+
+function update_visibility_table(items) {
+
+	for (var i = 0, len = challenge_shortnames.length; i < len; i++) {
+		var shortname = challenge_shortnames[i];
+		var visible = items.visibility_choices[shortname]
+		if (visible !== undefined) {
+			$('#visible_'+shortname).val(visible);
+		}
+	}
+}
+
+function create_visibility_table() {
+	var table = document.getElementById('challenge_visibility_table').getElementsByTagName('tbody')[0];
+	
+	challenge_shortnames = (Object.keys(challenges));
+
+	var select_visibility = ''
+	var shortname = ''
+	var newRow = ''
+	var newCell = ''
+	for (var i = 0, len = challenge_shortnames.length; i < len; i++) {
+		shortname = challenge_shortnames[i]
+		newRow  = table.insertRow(table.rows.length);
+		newCell = newRow.insertCell(0);
+		newCell.appendChild(document.createTextNode(challenges[shortname][0]));
+		
+		newCell = newRow.insertCell(1);
+		select_visibility = '<select id="visible_'+shortname+'"> ' +
+						'<option value="Expanded">Expanded</option>' +
+						'<option value="Collapsed">Collapsed</option>' +
+						'<option value="Hidden">Hidden</option> '+
+						'</select>'
+
+		newCell.innerHTML = select_visibility;
+		newCell = newRow.insertCell(2);
+		
+		var icon = get_flag_image_src(challenges[shortname][1])
+		var img = document.createElement("img");
+            img.src = icon
+			img.alt = challenges[shortname][1]
+			img.title = img.alt
+			img.width = 24
+			img.height = 24
+			img.style = "padding-left:15px; padding-right:6px"
+			img.align = "center"
+		newCell.appendChild(img);
+	}
+}
+
+function get_flag_image_src(country) {
+  // Mapping countries to flag image files
+  var flag_map = {
+      "New Zealand": "nz",
+      "Australia": "au",
+      "Denmark": "dk",
+      "Finland": "fi",
+      "France": "fr",
+      "Germany": "de",
+      "Iceland": "is",
+      "Ireland": "ie",
+      "Italy": "it",
+      "Malaysia": "my",
+      "Canada": "ca",
+      "Namibia": "na",
+      "Norway": "no",
+      "Poland": "pl",
+      "Russia": "ru",
+      "Singapore": "sg",
+      "South Africa": "za",
+      "Swaziland": "sz",
+      "Sweden": "se",
+      "UK": "gb",
+      "USA": "us",
+      "Zimbabwe": "zw",
+      "World": "world"
+  }
+
+  var flag_src = browser.extension.getURL("/images/flags/flag-unknown.png")
+
+  if (country in flag_map) {
+    flag_src = browser.extension.getURL("/images/flags/"+flag_map[country]+".png")
+  }
+
+  return flag_src
+
 }
 
 function update_home_parkrun_country() {
