@@ -173,6 +173,7 @@ function generate_running_challenge_data(data) {
       "name": "Gold Level Obsessive",
       "data": 50,
       "help": "Run 50+ parkruns in one calendar year."}))
+    challenge_highlow_countries(data, challenge_data)
   }
 
   if (data.parkrun_results && data.geo_data) {
@@ -181,6 +182,8 @@ function generate_running_challenge_data(data) {
       "name": "Regionnaire",
       "help": "Run all the parkrun locations in a geographical region."}))
   }
+  
+  //get_elevations()
 
   return challenge_data
 }
@@ -2121,4 +2124,97 @@ function challenge_by_region(data, params) {
 
     // Return an object representing this challenge
     return update_data_object(o)
+}
+
+function challenge_highlow_countries(data, challenge_data) {
+    var highlow_countries = {
+        "Australia" : { "highest_event" : "Armidale", "highest_altitude" : 984.79, "lowest_event" : "Surfers Paradise", "lowest_altitude" : -1.20 },
+        "Canada" : { "highest_event" : "Nose Hill", "highest_altitude" : 1233, "lowest_event" : "Richmond Olympic", "lowest_altitude" : 2.60 },
+        "Denmark" : { "highest_event" : "Brabrand", "highest_altitude" : 75.60, "lowest_event" : "Amager Strandpark", "lowest_altitude" : 0 },
+        "Finland" : { "highest_event" : "Vääksyn kanava", "highest_altitude" : 81.40, "lowest_event" : "Tokoinranta", "lowest_altitude" : 0 },
+        "France" : { "highest_event" : "Lac de Divonne", "highest_altitude" : 471.29, "lowest_event" : "Rouen", "lowest_altitude" : 1.2 },
+        "Germany" : { "highest_event" : "Westpark", "highest_altitude" : 535.20, "lowest_event" : "Alstervorland", "lowest_altitude" : 2.79 },
+        "Ireland" : { "highest_event" : "Russborough", "highest_altitude" : 205.90, "lowest_event" : "Poolbeg", "lowest_altitude" : -0.09 },
+        "Italy" : { "highest_event" : "Etna", "highest_altitude" : 852.20, "lowest_event" : "Foro Italico", "lowest_altitude" : 1.70 },
+        "Malaysia" : { "highest_event" : "Taman Pudu Ulu", "highest_altitude" : 58.79, "lowest_event" : "Presint 18", "lowest_altitude" : 38.20 },
+        "New Zealand" : { "highest_event" : "Taupo", "highest_altitude" : 356, "lowest_event" : "Lower Hutt", "lowest_altitude" : 3.29 },
+        "Norway" : { "highest_event" : "Løvstien, Bergen", "highest_altitude" : 73.70, "lowest_event" : "Festningen", "lowest_altitude" : 30.10 },
+        "Poland" : { "highest_event" : "Wolbrom", "highest_altitude" : 398.40, "lowest_event" : "Gdynia", "lowest_altitude" : 1.70 },
+        "Russia" : { "highest_event" : "Stavropol", "highest_altitude" : 639, "lowest_event" : "Rostov on Don", "lowest_altitude" : 1.90 },
+        "Singapore" : { "highest_event" : "Bishan", "highest_altitude" : 17.20, "lowest_event" : "West Coast Park", "lowest_altitude" : 7.60 },
+        "South Africa" : { "highest_event" : "Dullstroom", "highest_altitude" : 1993.20, "lowest_event" : "North Beach", "lowest_altitude" : 0 },
+        "Sweden" : { "highest_event" : "Skatås", "highest_altitude" : 59.90, "lowest_event" : "Malmö Ribersborg", "lowest_altitude" : 1 },
+        "UK" : { "highest_event" : "Bryn Bach", "highest_altitude" : 370, "lowest_event" : "Greenock", "lowest_altitude" : -0.29 },
+        "USA" : { "highest_event" : "Aspen", "highest_altitude" : 2456.20, "lowest_event" : "Anacostia", "lowest_altitude" : 0.90 } }
+    Object.keys(highlow_countries).sort().forEach(function (country_name) {
+        var challenge = challenge_parkruns(data, {
+            "shortname": "high-low-" + country_name,
+            "name": "High-Low - " + country_name,
+            "data": [highlow_countries[country_name].highest_event, highlow_countries[country_name].lowest_event],
+            "help": "Run at the parkrun events with the highest and lowest elevation in " + country_name
+        })
+        challenge.subparts_detail.forEach(function (subpart_detail) {
+            if (subpart_detail.subpart == highlow_countries[country_name].highest_event)
+                subpart_detail.name = highlow_countries[country_name].highest_altitude + "m"
+            else
+                subpart_detail.name = highlow_countries[country_name].lowest_altitude + "m"
+        })
+        challenge['badge_icon'] = 'runner-high-low'
+        challenge_data.push(challenge)
+    })
+}
+
+// To recalculate elevations:
+// 1. uncomment the call to get_elevations()
+// 2. replace <YOUR ACCESS TOKEN> below with a valid access token for jawg.io
+// 3. load the extension
+// 4. check the console log for any new events following 'New elevations:' and add to common\js\lib\elevations.js (this prevents having to call the API for them next time)
+// 5. check the console log for 'highest event' / 'lowest event' for each country against the static list above in challenge_highlow_countries(), update as necessary
+function get_elevations() {
+    var new_elevations = {}
+    data.geo_data.data.regions["World"].child_region_names.forEach(function (region_name) {
+        var highest_elevation = 0.0
+        var highest_elevation_event = ""
+        var lowest_elevation = 10000.0
+        var lowest_elevation_event = ""
+        data.geo_data.data.regions[region_name].child_event_recursive_names.forEach(function (child_event_name) {
+            if (elevations[child_event_name] === undefined) {
+                var event = data.geo_data.data.events[child_event_name]
+                var url = "https://api.jawg.io/elevations?locations=" + event.lat + "," + event.lon + "&access-token=<YOUR ACCESS TOKEN>"
+                $.ajax({
+                    url: url,
+                    dataType: "json",
+                    timeout: 10000,
+                    async: false,
+                    success: function (result) {
+                        elevations[event.name] = parseFloat(result[0]["elevation"])
+                        new_elevations[event.name] = parseFloat(result[0]["elevation"])
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("Error fetching " + url + ": " + error + " - " + status)
+                    }
+                })
+            }
+            
+            if (elevations[child_event_name] > highest_elevation) {
+                highest_elevation = elevations[child_event_name]
+                highest_elevation_event = child_event_name
+            }
+            if (elevations[child_event_name] < lowest_elevation) {
+                lowest_elevation = elevations[child_event_name]
+                lowest_elevation_event = child_event_name
+            }
+        })
+        if (lowest_elevation != 10000.0) {
+            console.log(region_name + " highest event - " + highest_elevation_event + " (" + highest_elevation + "m)")
+            console.log(region_name + " lowest event - " + lowest_elevation_event + " (" + lowest_elevation + "m)")
+        }
+    })
+    
+    if (Object.keys(new_elevations).length > 0) {
+        console.log("New elevations:")
+        Object.keys(new_elevations).forEach(function (event_name) {
+            console.log('  "' + event_name + '" : ' + new_elevations[event_name])
+        })
+    }
 }
