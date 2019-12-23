@@ -813,8 +813,8 @@ function generate_standard_table_entry(challenge, table, data) {
         if (subpart_detail != null) {
 
             subpart_row.append($('<td></td>').text(subpart_detail.subpart))
-            subpart_row.append($('<td></td>').text(subpart_detail.name))
-            subpart_row.append($('<td></td>').text(subpart_detail.info))
+            subpart_row.append($('<td></td>').html(subpart_detail.name))
+            subpart_row.append($('<td></td>').html(subpart_detail.info))
 
             challenge_tbody_detail.append(subpart_row)
         } else {
