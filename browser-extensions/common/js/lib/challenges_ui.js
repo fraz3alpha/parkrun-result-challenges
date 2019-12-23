@@ -95,8 +95,26 @@ function get_tbody_header(challenge) {
     return $('<tbody></tbody>').attr('id', get_tbody_header_id(challenge))
 }
 
-function get_tbody_content(challenge) {
-    return $('<tbody></tbody>').attr('id', get_tbody_content_id(challenge))
+function get_tbody_content(challenge, userData) {
+    var content = $('<tbody></tbody>').attr('id', get_tbody_content_id(challenge))
+    // Find out whether this should be hidden by default when we initially draw the page
+    if (isChallengeHidden(challenge.shortname, userData)) {
+      content.hide()
+    }
+    return content
+}
+
+function isChallengeHidden(challengeShortname, userData) {
+  var isHidden = false
+  console.log("userData: "+userData)
+  if (userData !== undefined) {
+    if (userData["challengeMetadata"] !== undefined && challengeShortname in userData["challengeMetadata"]) {
+      if ("hidden" in userData.challengeMetadata[challengeShortname]) {
+        isHidden = userData.challengeMetadata[challengeShortname].hidden
+      }
+    }
+  }
+  return isHidden
 }
 
 function get_tbody_header_id(challenge) {
@@ -132,15 +150,73 @@ function get_challenge_icon(challenge, height, width) {
     return badge_img
 }
 
+function saveHiddenPreference(challengeName, isHidden) {
+  console.log("Challenge: "+challengeName+", Is Hidden: "+isHidden)
+
+  browser.storage.local.get({
+    challengeMetadata: {}
+  }).then((items) => {
+    // Items contains the whole object, of which the key we asked for is a sub-item
+    console.log(items)
+
+    // If the challenge already exists in the object, then set the hidden property
+    if (challengeName in items.challengeMetadata) {
+      items.challengeMetadata[challengeName]["hidden"] = isHidden
+    // Else, add a metadata object for this challenge and initialise it
+    } else {
+      var challengeMetadata = {
+        "hidden": isHidden
+      }
+      items.challengeMetadata[challengeName] = challengeMetadata
+    }
+    console.log(items.challengeMetadata)
+    
+    // Save the information back into the local storage
+    browser.storage.local.set(items)
+  })
+
+}
+
+function toggleVisibilityOfChallenge(challengeShortname) {
+  var challengeBodyId = "challenge_tbody_content_"+challengeShortname
+  // console.log(challengeBodyId)
+  var challengeBodyElement = $("tbody[id="+challengeBodyId+"]")
+  // console.log(challengeBodyElement)
+  var isCurrentlyHidden = challengeBodyElement.is(":hidden")
+  // console.log("isCurrentlyHidden: "+isCurrentlyHidden)
+  // Save the preference to retain the fact it is hidden next time
+  saveHiddenPreference(challengeShortname, !isCurrentlyHidden)
+  // Toggle the visibility of the challenge now
+  challengeBodyElement.toggle()
+}
+
+// function getChallengeDataRowClass(challengeShortname) {
+//   return "challenge_table_row_data_"+challengeShortname
+// }
+// function getChallengeHeaderRowClass(challengeShortname) {
+//   return "challenge_table_row_header_"+challengeShortname
+// }
+// function getChallengeRowClass(challengeShortname) {
+//   return "challenge_table_row_"+challengeShortname
+// }
+
 function get_challenge_header_row(challenge, data) {
 
-    var main_row = $('<tr></tr>')
+    var main_row = $("<tr/>")
+    var challengeShortname = challenge.shortname
+
+    // Work out whether this challenge is hidden on the original page load,
+    // and add the appropriate extra text to show/hide it.
+    // var isHidden = false
+    // if (challenge.isHidden !== undefined && challenge.isHidden) {
+    //   isHidden = true
+    // }
 
     var badge_img = get_challenge_icon(challenge, 24, 24)
     if (badge_img !== undefined) {
       badge_img.click(function(){
-          $("tbody[id=challenge_tbody_content_"+challenge['shortname']+"]").toggle();
-      });
+        toggleVisibilityOfChallenge(challengeShortname)
+      }); 
     } else {
       badge_img = ''
     }
@@ -168,7 +244,7 @@ function get_challenge_header_row(challenge, data) {
       })
     }
 
-    main_row.append($('<th></th>').append(challenge.name + ' ' + help))
+    main_row.append($('<th></th>').append(challenge.name))
     main_row.append($('<th></th>').append(challenge_map_link))
     main_row.append($('<th></th>').text(challenge.completed_on))
     if (challenge.summary_text !== undefined) {
@@ -194,7 +270,7 @@ function generateRegionnaireTableEntry(table, data) {
   }
 
   var challenge_tbody_header = get_tbody_header(challenge)
-  var challenge_tbody_detail = get_tbody_content(challenge)
+  var challenge_tbody_detail = get_tbody_content(challenge, data.user_data)
 
   // Create the header row and add it to the tbody that exists to hold
   // the title row
@@ -243,7 +319,7 @@ function drawRegionnaireMap(divId, data) {
   }
 
   console.log("Initialising the regionnaire map container")
-  var r_map = L.map(divId).setView(default_centre, 2);
+  var r_map = L.map(divId, {"preferCanvas": true}).setView(default_centre, 2);
   // Allow it to be fullscreen
   r_map.addControl(new L.Control.Fullscreen());
 
@@ -793,7 +869,7 @@ function drawRegionnaireDataTable(table, data) {
 function generate_standard_table_entry(challenge, table, data) {
 
     var challenge_tbody_header = get_tbody_header(challenge)
-    var challenge_tbody_detail = get_tbody_content(challenge)
+    var challenge_tbody_detail = get_tbody_content(challenge, data.user_data)
 
     // Create the header row and add it to the tbody that exists to hold
     // the title row
@@ -807,8 +883,19 @@ function generate_standard_table_entry(challenge, table, data) {
     }
 
     // Print the subparts
-    challenge.subparts_detail.forEach(function (subpart_detail) {
+    // If it is collapsible, then we will hide the rows after a certain point
+    hasHiddenRows = false
+    hideFromRow = 10
+    hiddenRowCount = 0
+    var hiddenRowClass = challenge.shortname+"-hiddenrow"
+    $.each(challenge.subparts_detail, function(idx, subpart_detail) {
         var subpart_row = $('<tr></tr>')
+        if (challenge.collapsible && idx >= hideFromRow) {
+          subpart_row.addClass(hiddenRowClass)
+          subpart_row.hide()
+          hasHiddenRows = true
+          hiddenRowCount++
+        }
         subpart_row.append($('<td></td>').text("-"))
         if (subpart_detail != null) {
 
@@ -823,6 +910,18 @@ function generate_standard_table_entry(challenge, table, data) {
         }
 
     });
+
+    // If we hid any rows we need to have a way to show them, so add a row
+    if (hasHiddenRows) {
+      var subpartInfoRow = $('<tr/>').attr("id", hiddenRowClass+"-selector")
+      subpartInfoRow.append($('<td/>').attr('colspan', 4).text("Show "+hiddenRowCount+" hidden rows...").click(function() {
+        // Show all the rows for this challenge.
+        $("."+hiddenRowClass).show()
+        // Hide the row that lets you unhide rows, because we just did that
+        $("#"+hiddenRowClass+"-selector").hide()
+      }))
+      challenge_tbody_detail.append(subpartInfoRow)
+    }
 
     table.append(challenge_tbody_header)
     table.append(challenge_tbody_detail)

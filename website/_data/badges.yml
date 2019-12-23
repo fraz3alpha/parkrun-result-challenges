@@ -58,9 +58,9 @@ runner:
     name: Groundhog Day
     description: Finish with the same time at the same parkrun location on two consecutive parkruns.
 
-  # - shortname: regionnaire
-  #   name: Regionnaire
-  #   description: Run all the parkrun locations in a geographical region.
+  - shortname: record-breaker
+    name: Record Breaker
+    description: Run all the parkrun events within 33km, 45km, and 78km of your home parkrun.
 
   - shortname: all-weather-runner
     name: All Weather Runner
