@@ -114,6 +114,7 @@ function generate_running_challenge_data(data) {
       "name": "Compass Club",
       "data": ["north","south","east","west"],
       "help": " Run at a parkrun named after each of the four compass points."}))
+    challenge_compass_club_regions(data, challenge_data)
     challenge_data.push(challenge_parkruns(data, {
       "shortname": "full-ponty",
       "name": "The Full Ponty",
@@ -1588,6 +1589,35 @@ function challenge_stopwatch_bingo(data, params) {
 
     // Return an object representing this challenge
     return update_data_object(o)
+}
+
+function challenge_compass_club_regions(data, challenge_data) {
+    $.each(data.geo_data.data.countries, function (country_name, country_info) {
+      var country = {}
+      if (data.geo_data.data.regions[country_name].child_event_recursive_names.length > 0) {
+          $.each(data.geo_data.data.regions[country_name].child_event_recursive_names, function(index, event_name) {
+            var event_info = data.geo_data.data.events[event_name]
+            if (country['north'] === undefined || parseFloat(event_info.lat) > parseFloat(country['north'].lat))
+              country['north'] = event_info
+            if (country['south'] === undefined || parseFloat(event_info.lat) < parseFloat(country['south'].lat))
+              country['south'] = event_info
+            if (country['east'] === undefined || parseFloat(event_info.lon) > parseFloat(country['east'].lon))
+              country['east'] = event_info
+            if (country['west'] === undefined || parseFloat(event_info.lon) < parseFloat(country['west'].lon))
+              country['west'] = event_info
+          })
+          
+          //console.log(country_name + ": north - " + country['north'].name + ", east - " + country['east'].name + ", south - " + country['south'].name + ", west - " + country['west'].name)
+          var challenge = challenge_parkruns(data, {
+              "shortname": "compass-club-" + country_name,
+              "name": "Compass Club - " + country_name,
+              "data": [country['north'].name, country['east'].name, country['south'].name, country['west'].name],
+              "help": "Run at the North/East/South/West most parkruns in " + country_name
+          })
+          challenge['badge_icon'] = 'runner-compass-club'
+          challenge_data.push(challenge)
+      }
+    })
 }
 
 // Complete 100 parkruns at the same venue
