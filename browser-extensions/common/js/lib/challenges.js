@@ -140,6 +140,10 @@ function generate_running_challenge_data(data) {
       "shortname": "groundhog-day",
       "name": "Groundhog Day",
       "help": "Finish with the same time at the same parkrun location on two consecutive parkruns."}))
+    challenge_data.push(challenge_metronome(data, {
+      "shortname": "metronome",
+      "name": "Metronome",
+      "help": "Finish with the same time on 10 occasions."}))
     challenge_data.push(challenge_on_dates(data, {
       "shortname": "all-weather-runner",
       "name": "All Weather Runner",
@@ -1921,6 +1925,59 @@ function challenge_groundhog_day(data, params) {
     }
 
     // Return an object representing this challenge
+    return update_data_object(o)
+}
+
+function challenge_metronome(data, params) {
+    var parkrun_results = data.parkrun_results
+    var o = create_data_object(params, "runner")
+    o.complete = false
+    o.subparts = ["1"]
+    o.summary_text = "0"
+    var timeCounts = {}
+    parkrun_results.forEach(function (parkrun_event) {
+      if (o.subparts_detail.length == 0) {
+            var timeCount = timeCounts[parkrun_event.time]
+            if (timeCount === undefined)
+                timeCounts[parkrun_event.time] = 1
+            else
+                timeCounts[parkrun_event.time] = timeCount + 1
+        
+        if (timeCount == 9) { // now 10
+                o.subparts_detail.push({
+                    "name": parkrun_event.time,
+                    "date": parkrun_event.date,
+                    "info": parkrun_event.date,
+                    "subpart": "10x"
+                })
+                o.subparts_completed_count = 1
+                o.summary_text = "1"
+                o.complete = true
+                o.completed_on = parkrun_event.date
+            }
+      }
+    })
+    
+    var highestCount = 0
+    var highestTime = ""
+    if (!o.complete) {
+      for (var time in timeCounts) {
+        if (timeCounts[time] > highestCount) {
+          highestCount = timeCounts[time]
+          highestTime = time
+        }
+      }
+    }
+
+    if (o.subparts_detail.length == 0) {
+        o.subparts_detail.push({
+            "name": highestTime,
+            "subpart": highestCount + "x",
+            "date": "-",
+            "info": "-"
+        })
+    }
+    
     return update_data_object(o)
 }
 
