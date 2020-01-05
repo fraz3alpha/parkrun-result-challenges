@@ -173,6 +173,11 @@ function generate_running_challenge_data(data) {
       "name": "Gold Level Obsessive",
       "data": 50,
       "help": "Run 50+ parkruns in one calendar year."}))
+    challenge_data.push(challenge_parkrun_each_date_in_year(data, {
+      "shortname": "parkrun-each-date-year",
+      "name": "Every date in the year",
+      "help": "Run on every date in the year"
+    }))
   }
 
   // if (data.parkrun_results && data.geo_data) {
@@ -1375,6 +1380,149 @@ function challenge_parkruns(data, params) {
 
     // Return an object representing this challenge
     return update_data_object(o)
+}
+
+function challenge_parkrun_each_date_in_year(data, params) {
+
+  var parkrun_results = data.parkrun_results;
+  var o = create_data_object(params, "runner");
+  o.subparts = ["1"];
+  o.summary_text = "0";
+
+  const monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  o.has_map = false;
+
+  dayevents = [];
+
+  // Fill in the details for each
+  parkrun_results.forEach(function (parkrun_event) {
+
+    // Extract date information
+    day = parseInt(parkrun_event.date.substr(0,2));
+    month = parseInt(parkrun_event.date.substr(3, 2));
+    year = parseInt(parkrun_event.date.substr(6,4));
+
+    if( dayevents[month] == null ) {
+      dayevents[month] = [];
+    }
+
+    // Check we don't already hold something on this day
+    if( dayevents[month][day] == null) {
+      dayevents[month][day] = parkrun_event;
+    }
+
+  });
+
+  // Build the table
+  for( i = 1; i <= 366; i++) {
+
+    // Does this day number have an event?
+    [m,d, datedesc] = dateFromDay(i);
+
+    if( dayevents[m] != null ) {
+
+      if( dayevents[m][d] != null && o.subparts_detail[i] == null) {
+
+        // A parkrun occurred on this month and day number, e.g. Feb 27
+        // and we don't already have one on this date
+        o.subparts_detail[i] = {
+          "name": dayevents[m][d].name,
+          "date": dayevents[m][d].date,
+          "info": dayevents[m][d].date,
+          "subpart": datedesc
+        };
+
+        o.subparts_completed_count += 1
+
+      } else if (dayevents[m][d] == null && o.subparts_detail[i] == null)  {
+
+        // No parkrun occurred on this day and we don't already have one on this date
+        //
+
+        var options = { day: 'numeric', month: 'numeric', year: 'numeric'};
+
+        // Find the next date on which it's possible to parkrun
+        // At the moment, only considering Saturdays but this could get more sophisticated.
+        possibledate = find_date_day_month_is_parkrunday(m, d);
+
+        if (possibledate != null) {
+
+          // We've found a year where it's possible to parkrun on that day
+          o.subparts_detail[i] = {
+            "name": "",
+            "date": "",
+            "info": "Possible on " + possibledate.toLocaleDateString(undefined, options),
+            "subpart": datedesc
+          };
+
+        } else {
+
+          // We can't find any year where this is possible...
+          o.subparts_detail[i] = {
+            "name": "",
+            "date": "",
+            "info": "No date found",
+            "subpart": datedesc
+          };
+
+        }
+
+      }
+
+    }
+
+
+  }
+
+  // Change the summary to indicate number of times completed
+  o.summary_text = o.subparts_completed_count + "/366"
+
+  // Mark it complete the first time it occurs
+  if (o.subparts_completed_count == 366) {
+    o.complete = true
+  }
+
+  // Return an object representing this challenge
+  return update_data_object(o)
+}
+
+// Given a day of year number, return the month, day of month and
+// localised description of that day
+function dateFromDay(day){
+  var date = new Date(2016, 0);
+  d = new Date(date.setDate(day));
+  var options = { month: 'long', day: 'numeric' };
+  return [d.getMonth()+1, d.getDate(), d.toLocaleDateString(undefined, options)]
+}
+
+function find_date_day_month_is_parkrunday(month, day) {
+
+  var nextyear = null;
+
+  var nowDate = new Date();
+
+  // Find the real date where month and day number is a Saturday
+  for (y = 2018; y < 2099; y++) {
+
+    // Get next date
+    possibledate = new Date(y, month-1, day);
+
+    if( month == 2 && day == 29) {
+      console.log("Considering " + possibledate.toString());
+    }
+
+    // Is this a Saturday?
+    if (possibledate.getDay() == 6 && possibledate > nowDate) {
+      nextyear = possibledate;
+      console.log("Yup that one");
+      break;
+    }
+  }
+
+  return nextyear;
 }
 
 // Complete x different parkruns (20 and 100 are standard)
