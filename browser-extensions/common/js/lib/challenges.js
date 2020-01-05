@@ -140,6 +140,10 @@ function generate_running_challenge_data(data) {
       "shortname": "groundhog-day",
       "name": "Groundhog Day",
       "help": "Finish with the same time at the same parkrun location on two consecutive parkruns."}))
+	 challenge_data.push(challenge_timelord(data, {
+      "shortname": "timelord",
+      "name": "Timelord",
+      "help": "Finish with the same time at two parkrun locations on the same day (a double day)."}))
     challenge_data.push(challenge_on_dates(data, {
       "shortname": "all-weather-runner",
       "name": "All Weather Runner",
@@ -1893,6 +1897,68 @@ function challenge_groundhog_day(data, params) {
             // Add to the events done list, so that we can map them
             if (!(parkrun_event.name in o.completed_qualifying_events)) {
               o.completed_qualifying_events[parkrun_event.name] = get_parkrun_event_details(data, parkrun_event.name)
+            }
+
+            o.subparts_completed_count += 1
+            // Mark it complete the first time it occurs
+            if (!o.complete) {
+                o.complete = true
+                o.completed_on = parkrun_event.date
+            }
+
+        }
+
+        previous_parkrun = parkrun_event
+
+    });
+
+    if (o.subparts_detail.length == 0) {
+        o.subparts_detail.push({
+            "subpart": o.subparts_detail.length + 1,
+            "info": "-"
+        })
+    }
+
+    // Change the summary to indicate number of times completed
+    if (o.subparts_completed_count > 0) {
+        o.summary_text = "x"+o.subparts_completed_count
+    }
+
+    // Return an object representing this challenge
+    return update_data_object(o)
+}
+
+function challenge_timelord(data, params) {
+
+  var parkrun_results = data.parkrun_results
+    var o = create_data_object(params, "runner")
+    o.subparts = ["1"]
+    o.summary_text = "0"
+
+    o.has_map = true
+    if (has_home_parkrun(data) && is_our_page(data)) {
+      o.home_parkrun = get_home_parkrun(data)
+    }
+
+    var previous_parkrun = null
+
+    parkrun_results.forEach(function (parkrun_event) {
+
+        if (previous_parkrun != null && parkrun_event.date == previous_parkrun.date && parkrun_event.time == previous_parkrun.time) {
+
+            o.subparts_detail.push({
+                "name": parkrun_event.name+" and "+previous_parkrun.name,
+                "date": parkrun_event.date,
+                "info": parkrun_event.time+" on "+parkrun_event.date,
+                "subpart": o.subparts_detail.length + 1
+            })
+
+            // Add to the events done list, so that we can map them
+            if (!(parkrun_event.name in o.completed_qualifying_events)) {
+              o.completed_qualifying_events[parkrun_event.name] = get_parkrun_event_details(data, parkrun_event.name)
+            }
+            if (!(previous_parkrun.name in o.completed_qualifying_events)) {
+              o.completed_qualifying_events[previous_parkrun.name] = get_parkrun_event_details(data, previous_parkrun.name)
             }
 
             o.subparts_completed_count += 1
