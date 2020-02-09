@@ -140,6 +140,10 @@ function generate_running_challenge_data(data) {
       "shortname": "stopwatch-bingo",
       "name": "Stopwatch Bingo",
       "help": " Collect all the seconds from 00 to 59 in your finishing times."}))
+    challenge_data.push(challenge_finish_position_bingo(data, {
+      "shortname": "finish-position-bingo",
+      "name": "Finish Position Bingo",
+      "help": " Collect all the positions from 1 to 100 in your finishing positions."}))
     challenge_data.push(challenge_start_letters(data, {
       "shortname": "pirates",
       "name": "Pirates!",
@@ -1722,6 +1726,62 @@ function challenge_stopwatch_bingo(data, params) {
                 "info": "-"
             }
         }
+    }
+
+    // Return an object representing this challenge
+    return update_data_object(o)
+}
+
+function challenge_finish_position_bingo(data, params) {
+
+    var parkrun_results = data.parkrun_results
+    var o = create_data_object(params, "runner")
+
+    // Add all the subparts to the list
+    for (i=1; i<=100; i++) {
+        number_string = i.toString()
+        o.subparts.push(number_string)
+        o.subparts_detail[number_string] = null
+    }
+
+    parkrun_results.forEach(function (parkrun_event) {
+        // Convert finish position to a number to get the index in our array
+        subparts_detail_index = parseInt(parkrun_event.position) % 100
+		if (subparts_detail_index == 0)
+			subparts_detail_index = 100
+		if (o.subparts_detail[subparts_detail_index] == null) {
+			o.subparts_detail[subparts_detail_index] = Object.create(parkrun_event)
+			o.subparts_detail[subparts_detail_index].subpart = subparts_detail_index
+			o.subparts_detail[subparts_detail_index].name = 1
+			o.subparts_detail[subparts_detail_index].info = parkrun_event.date
+			o.subparts_completed_count += 1
+
+			if (!(parkrun_event.name in o.completed_qualifying_events)) {
+			  o.completed_qualifying_events[parkrun_event.name] = get_parkrun_event_details(data, parkrun_event.name)
+			}
+
+			if (o.subparts.length == o.subparts_completed_count) {
+				o.complete = true
+				o.completed_on = parkrun_event.date
+			}
+		}
+		else {
+			o.subparts_detail[subparts_detail_index].name++
+		}
+    });
+
+    // Add in all the missing ones
+    for (i=1; i<=100; i++) {
+        if (o.subparts_detail[i] == null) {
+            o.subparts_detail[i] = {
+                "subpart": i,
+                "info": "-",
+				"name": "-"
+            }
+        }
+		else {
+			o.subparts_detail[i].name = o.subparts_detail[i].name.toString() + "x"
+		}
     }
 
     // Return an object representing this challenge
