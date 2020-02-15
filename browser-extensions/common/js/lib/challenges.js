@@ -207,7 +207,7 @@ function generate_running_challenge_data(data) {
         {"month": 11},
       ],
       "help": "Run in each month of the year."}))
-    challenge_data.push(challenge_obsessive(data, 
+    challenge_data.push(challenge_obsessive(data,
       {
         "shortname": "obsessive-gold",
         "name": "parkrun Obsessive",
@@ -230,7 +230,10 @@ function generate_running_challenge_data(data) {
           }
         ]
       }))
-
+    challenge_data.push(challenge_regular_running(data, {
+      "shortname": "regular-running-day",
+      "name": "Regular Running",
+      "help": "Build a running community by running at an event every year since you first attended."}))
   }
 
   // if (data.parkrun_results && data.geo_data) {
@@ -2155,6 +2158,118 @@ function challenge_groundhog_day(data, params) {
 
     // Return an object representing this challenge
     return update_data_object(o)
+}
+
+function difference(setA, setB) {
+  var _difference = new Set(setA);
+  for (var elem of setB) {
+    _difference.delete(elem);
+  }
+  return _difference;
+}
+
+function challenge_regular_running(data, params) {
+
+  var parkrun_results = data.parkrun_results
+  var o = create_data_object(params, "runner")
+  o.subparts = ["1"]
+  o.summary_text = "0"
+  o.has_map = true
+  if (has_home_parkrun(data) && is_our_page(data)) {
+    o.home_parkrun = get_home_parkrun(data)
+  }
+
+  // Event centric list - we want a data structure which contains each event
+  // and list of dates on which that event has been run.
+  var eventcentric = {}
+  parkrun_results.forEach(function (parkrun_event) {
+
+    if( !Object.keys(eventcentric).includes(parkrun_event.name)) {
+      eventcentric[parkrun_event.name] = {}
+      eventcentric[parkrun_event.name]['name'] = parkrun_event.name
+      eventcentric[parkrun_event.name]['dates'] = []
+      eventcentric[parkrun_event.name]['dates'].push(parkrun_event.date)
+    } else {
+      eventcentric[parkrun_event.name]['dates'].push(parkrun_event.date)
+    }
+  });
+
+  var d = new Date();
+  var thisyear = d.getFullYear()
+
+  // Test whether we're regularly running there
+  Object.keys(eventcentric).forEach(function(event) {
+
+    eventcentric[event]['years'] = new Set();
+    eventcentric[event]['earliestyear'] = undefined;
+
+    // For each date on which we've run this parkrun...
+    eventcentric[event]['dates'].forEach(function(d) {
+
+      // Extract year and add to Set
+      year = d.substr(6, 4)
+      eventcentric[event]['years'].add(year)
+
+      if(year < eventcentric[event]['earliestyear'] || eventcentric[event]['earliestyear'] === undefined) {
+        eventcentric[event]['earliestyear'] = year
+      }
+    });
+
+    // Have they run EVERY year between earliestyear and THIS year?
+    // Build a list of years to test against...
+    possibleyears = new Set();
+    for(i = eventcentric[event]['earliestyear']; i <= thisyear; i++) {
+      possibleyears.add(i.toString())
+    }
+
+    // Flag whether they've run at every year since they first ran the event...
+    // (is there a difference between possible years and actual years ran?)
+    if(difference(possibleyears, eventcentric[event]['years']).size == 0 &&
+        thisyear != eventcentric[event]['earliestyear']) {
+      eventcentric[event]['regular'] = 1
+    } else {
+      eventcentric[event]['regular'] = 0
+    }
+  });
+
+  // Push out summary
+  Object.keys(eventcentric).forEach(function(event) {
+
+    parkrun_event = eventcentric[event]
+
+    if (parkrun_event['regular'] == 1) {
+      o.subparts_detail.push({
+        "name": parkrun_event.name,
+        "date": '',
+        "info": parkrun_event['earliestyear'] + ' - ' + thisyear,
+        "subpart": o.subparts_detail.length + 1
+      })
+
+      // Add to the events done list, so that we can map them
+      if (!(parkrun_event.name in o.completed_qualifying_events)) {
+        o.completed_qualifying_events[parkrun_event.name] = get_parkrun_event_details(data, parkrun_event.name)
+      }
+
+      o.subparts_completed_count += 1
+      o.complete = true
+    }
+
+  });
+
+  if (o.subparts_detail.length == 0) {
+    o.subparts_detail.push({
+      "subpart": o.subparts_detail.length + 1,
+      "info": "-"
+    })
+  }
+
+  // Change the summary to indicate number of times completed
+  if (o.subparts_completed_count > 0) {
+    o.summary_text = "x"+o.subparts_completed_count
+  }
+
+  // Return an object representing this challenge
+  return update_data_object(o)
 }
 
 function challenge_obsessive(data, params) {
