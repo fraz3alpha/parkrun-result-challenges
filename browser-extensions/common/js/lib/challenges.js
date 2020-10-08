@@ -624,6 +624,74 @@ function generate_stat_longest_tourism_streak(parkrun_results) {
   }
 }
 
+function generate_stat_finish_index(parkrun_results) {
+    var positions = []
+    parkrun_results.forEach(function (parkrun_event) {
+        positions.push(parseInt(parkrun_event.position))
+    })
+    positions.sort(function (position1, position2) { return position1 - position2 })
+    var currentStreak = 0
+    var longestStreak = 0
+    var longestStreakLastPosition = -1
+    var lastPosition = -1
+    positions.forEach(function (position) {
+        if (position == lastPosition + 1) {
+            currentStreak++
+        } else if (position > lastPosition + 1) {
+            if (currentStreak > longestStreak) {
+                longestStreak = currentStreak
+                longestStreakLastPosition = lastPosition
+            }
+            currentStreak = 1
+        }
+        lastPosition = position
+    })
+    if (currentStreak > longestStreak) {
+        longestStreak = currentStreak
+        longestStreakLastPosition = lastPosition
+    }
+    return {
+        "display_name": "finish-index",
+        "help": "The maximum contiguous series of parkrun finish positions you have achieved (at any event), starting at any position.",
+        "value": longestStreak + " - position " + (longestStreakLastPosition - longestStreak + 1) + " through " + longestStreakLastPosition
+    }
+}
+
+function generate_stat_gossit_index(parkrun_results) {
+    var durations = []
+    parkrun_results.forEach(function (parkrun_event) {
+        durations.push(parkrun_event.duration)
+    })
+    durations.sort(function (duration1, duration2) { return duration1 - duration2 })
+    var currentStreak = 0
+    var longestStreak = 0
+    var longestStreakLastDuration = -1
+    var lastDuration = -1
+    durations.forEach(function (duration) {
+        if (duration == lastDuration + 1) {
+            currentStreak++
+        } else if (duration > lastDuration + 1) {
+            if (currentStreak > longestStreak) {
+                longestStreak = currentStreak
+                longestStreakLastDuration = lastDuration
+            }
+            currentStreak = 1
+        }
+        lastDuration = duration
+    })
+    if (currentStreak > longestStreak) {
+        longestStreak = currentStreak
+        longestStreakLastDuration = lastDuration
+    }
+    var streakStartTime = Math.floor((longestStreakLastDuration - longestStreak + 1) / 60) + ":" + ((longestStreakLastDuration - longestStreak + 1) % 60)
+    var streakFinishTime = Math.floor(longestStreakLastDuration / 60) + ":" + (longestStreakLastDuration % 60)
+    return {
+        "display_name": "gossit-index",
+        "help": "The maximum contiguous series of parkrun finish times you have achieved (at any event), starting at any time.",
+        "value": longestStreak + " - " + streakStartTime + " through " + streakFinishTime
+    }
+}
+
 function generate_stat_runs_this_year(parkrun_results) {
   // Find those parkrun events that have been completed
   var runs_this_year = 0
@@ -948,6 +1016,8 @@ function generate_stats(data) {
     stats['runs_this_year'] = generate_stat_runs_this_year(data.parkrun_results)
     stats['p_index'] = generate_stat_p_index(data.parkrun_results)
     stats['wilson_index'] = generate_stat_wilson_index(data.parkrun_results)
+    stats['finish_index'] = generate_stat_finish_index(data.parkrun_results)
+    stats['gossit_index'] = generate_stat_gossit_index(data.parkrun_results)
     stats['parkrun_birthday'] = generate_stat_parkrun_birthday(data.parkrun_results)
     stats['years_parkrunning'] = generate_stat_years_parkrunning(data.parkrun_results)
     stats['events_run'] = generate_stat_events_run(data.parkrun_results)

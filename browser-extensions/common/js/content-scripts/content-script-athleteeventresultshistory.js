@@ -171,6 +171,9 @@ function parse_results_table() {
               parkrun_event_number = table_cells[2].innerText.trim()
               parkrun_position = table_cells[3].innerText.trim()
               parkrun_time = table_cells[4].innerText.trim()
+              parkrun_duration = (parkrun_time.length == 7) ? 3600 : 0 // assume only 1:xx:xx
+              parkrun_duration += parseInt(parkrun_time.substr(parkrun_time.length - 5)) * 60
+              parkrun_duration += parseInt(parkrun_time.substr(parkrun_time.length - 2))
               parkrun_pb = table_cells[6].innerText.trim()
 
               // Create a date object, useful for comparing
@@ -190,6 +193,7 @@ function parse_results_table() {
                   "event_number": parkrun_event_number,
                   "position": parkrun_position,
                   "time": parkrun_time,
+                  "duration" : parkrun_duration,
                   "pb": parkrun_pb.length > 0
               }
               parkruns_completed.push(parkrun_stats)
