@@ -181,6 +181,20 @@ function generate_running_challenge_data(data, thisAthleteInfo) {
         {"month": 11, "day": 25}
       ],
       "help": "Run a parkrun on the 25th of December."}))
+	 challenge_data.push(challenge_on_holidays(data, {
+      "shortname": "thanksgiving-turkey",
+      "name": "Thanksgiving Turkey",
+      "data": [
+	    // No USA parkruns before 2012
+		  {"fulldate": "22/11/2012"}, {"fulldate": "28/11/2013"}, {"fulldate": "27/11/2014"},
+		  {"fulldate": "26/11/2015"}, {"fulldate": "24/11/2016"}, {"fulldate": "23/11/2017"},
+		  {"fulldate": "22/11/2018"}, {"fulldate": "28/11/2019"}, {"fulldate": "26/11/2020"},
+		  {"fulldate": "25/11/2021"}, {"fulldate": "24/11/2022"}, {"fulldate": "23/11/2023"},
+		  {"fulldate": "28/11/2024"}, {"fulldate": "27/11/2025"}, {"fulldate": "26/11/2026"},
+		  {"fulldate": "25/11/2027"}, {"fulldate": "23/11/2028"}, {"fulldate": "22/11/2029"}
+		// More dates to be added in the future
+      ],
+      "help": "Run a parkrun on Thanksgiving."}))
     challenge_data.push(challenge_nyd_double(data, {
       "shortname": "nyd-double",
       "name":  "NYD Double",
@@ -2161,7 +2175,7 @@ function challenge_on_dates(data, params) {
   // Work out how many times we have completed the challenge by looking at
   // how many events have been added for each subpart
   var completion_count = undefined;
-  console.log(o.subparts)
+  //console.log(o.subparts)
   o.subparts.forEach(function(events_for_this_date) {
     if (completion_count === undefined) {
       completion_count = events_for_this_date.length
@@ -2174,7 +2188,7 @@ function challenge_on_dates(data, params) {
     o.complete = true
   }
 
-  console.log("This challenge has been completed x" + completion_count)
+  //console.log("This challenge has been completed x" + completion_count)
   o.subparts_completed_count = completion_count
 
   // If there is only one date, we can reasonably list the date that the parkrunner
@@ -2215,12 +2229,79 @@ function challenge_on_dates(data, params) {
 
   // Return an object representing this challenge
   return update_data_object(o)
+}
 
+function challenge_on_holidays(data, params) {
+	var parkrun_results = data.parkrun_results
+	var o = create_data_object(params, "runner")
+
+	// This function takes an array of dates, and compares
+	// the events date to each. If an event was run on any of the
+	// challenge dates then that event is reported for the challenge
+    o.subparts = ["1"]
+    o.summary_text = "0"
+
+    o.has_map = true
+    if (has_home_parkrun(data) && is_our_page(data)) {
+      o.home_parkrun = get_home_parkrun(data)
+    }
+
+	var challenge_dates = params.data // dates should be an array
+	var thisYear = new Date().getFullYear()
+	
+    parkrun_results.forEach(function (parkrun_event) {
+		// Test each event
+		o.summary_text = "0"
+		if (challenge_dates !== undefined) {
+			$.each(challenge_dates, function (index, this_challenge_date) {
+				// with each date given. Skipping those with dates in the future.
+				//console.log("event.date = " + parkrun_event.date.substr(5, 4) + " thisYear = " + thisYear)
+				if (parseInt(parkrun_event.date.substr(6, 4),10) <= thisYear) {
+					if (parkrun_event.date == this_challenge_date.fulldate) {
+
+						o.subparts_detail.push({
+							"name": parkrun_event.name,
+							"date": parkrun_event.date,
+							"info": parkrun_event.date,
+							"subpart": o.subparts_detail.length + 1
+						})
+
+						// Add to the events done list, so that we can map them
+						if (!(parkrun_event.name in o.completed_qualifying_events)) {
+						  o.completed_qualifying_events[parkrun_event.name] = get_parkrun_event_details(data, parkrun_event.name)
+						}
+
+						o.subparts_completed_count += 1
+						// Mark it complete the first time it occurs
+						if (!o.complete) {
+							o.complete = true
+							o.completed_on = parkrun_event.date
+						}
+					}
+				}
+			});
+		}
+	})
+
+	if (o.subparts_detail.length == 0) {
+		o.subparts_detail.push({
+			"subpart": o.subparts_detail.length + 1,
+			"info": "-"
+		})
+    }
+
+    // Change the summary to indicate number of times completed
+    if (o.subparts_completed_count > 0) {
+        o.summary_text = "x"+o.subparts_completed_count
+    }
+
+    // Return an object representing this challenge
+    return update_data_object(o)
 }
 
 function challenge_nyd_double(data, params) {
 
-  var parkrun_results = data.parkrun_results
+    var parkrun_results = data.parkrun_results
     var o = create_data_object(params, "runner")
     o.subparts = ["1"]
     o.summary_text = "0"
