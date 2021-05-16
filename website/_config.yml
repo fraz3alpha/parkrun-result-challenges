@@ -78,5 +78,8 @@ permalink: /:year/:month/:day/:title:output_ext
 google_analytics: "UA-115520338-2"
 google_analytics_staging: "UA-115520338-3"
 
+disqus:
+  shortname: "andytaylor"
+
 exclude: 
   - vendor

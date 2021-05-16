@@ -75,6 +75,9 @@ echo "staging.running-challenges.co.uk" > CNAME
 sed -i -e 's/https:\/\/www.running-challenges.co.uk/https:\/\/staging.running-challenges.co.uk/' _config.yml
 sed -i -e 's/Running Challenges/Running Challenges - Staging/' _config.yml
 
+# Set the production flag, so we can play with disqus
+export JEKYLL_ENV=production
+
 # Build the site
 bundle install
 bundle exec jekyll build --trace --future
