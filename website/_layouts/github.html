@@ -1,0 +1,23 @@
+---
+layout: default
+---
+
+{% include github.html %}
+
+<article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">{{ page.title | escape }}</h1>
+  </header>
+
+  <div class="post-content">
+    {{ content }}
+  </div>
+
+  <h3>Open challenge ideas</h3>
+  <div id="github-open-challenge-ideas-table">Loading...</div>
+
+  <h3>Implemented challenge ideas</h3>
+  <div id="github-implemented-challenge-ideas-table">Loading...</div>
+
+</article>
