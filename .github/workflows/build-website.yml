@@ -3,19 +3,24 @@ name: Website Builder
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#concurrency
 concurrency: website-build
 
-# Run this workflow every time a new commit pushed to your repository,
-# and periodically, to pick up any other updates that may have occurred - 
-# e.g. in the data repository
+# Run this workflow every time a new commit is pushed to the master branch
+# in the website directory, or the website build directory. 
+# And also periodically, to pick up any other updates that may have occurred - 
+# e.g. in the data repository or the javascript libraries
 on: 
   push:
     branches:
       - master
+    path:
+      - websites/**
+      - build/website/**
   schedule:
-    # Run daily at 1pm
+    # Run on a Thursday(4) at 1pm to make sure everything is up to date for the coming weekend
     # * is a special character in YAML so you have to quote this string
-    - cron:  '0 13 * * *'
+    - cron:  '0 13 * * 4'
+  # Allow it to be run manually - useful for testing, or pushing a out-of-cycle update
   workflow_dispatch:
-    # Allow it to be run manually - useful for testing?
+
 
 jobs:
   # Set the job key. The key is displayed as the job name
