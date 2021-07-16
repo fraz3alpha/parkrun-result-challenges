@@ -1,0 +1,38 @@
+.leaflet-control-sidemenu a {
+  background:#fff url('images/burgers.png') no-repeat 0 0;
+  background-size:26px 26px;
+  }
+.leaflet-touch .leaflet-control-sidemenu a {
+  background-position: 2px 2px;
+  }
+
+/* .leaflet-control-sidemenu-close a {
+  background:#fff url('images/close.png') no-repeat 0 0;
+  background-size:26px 26px;
+  }
+.leaflet-touch .leaflet-control-sidemenu-close a {
+  background-position: 2px 2px;
+  } */
+
+.leaflet-sidemenu {
+    position: absolute;
+    background-color: rgba(250, 250, 250, 255);
+    overflow: auto;
+    cursor: default;
+    z-index: 9999;
+    padding: 5px;
+}
+
+.leaflet-sidemenu-contents {
+}
+
+@media
+  (-webkit-min-device-pixel-ratio:2),
+  (min-resolution:192dpi) {
+    .leaflet-control-sidemenu a {
+      background-image: url('images/burgers@2x.png');
+    }
+    /* .leaflet-control-sidemenu-close a {
+      background-image: url('images/close@2x.png');
+    } */
+  }

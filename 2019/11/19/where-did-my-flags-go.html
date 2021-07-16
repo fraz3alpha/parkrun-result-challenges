@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Where did my flags go? | Running Challenges</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Where did my flags go?" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="You may have noticed that your flags have disappeared, you can’t save your athlete ID in the options page, your regionnaire badge has disappeared, or you no longer have your NENDY and average parkrun location listed… Read on to find out what broke, why, and what we’re doing to fix it…" />
+<meta property="og:description" content="You may have noticed that your flags have disappeared, you can’t save your athlete ID in the options page, your regionnaire badge has disappeared, or you no longer have your NENDY and average parkrun location listed… Read on to find out what broke, why, and what we’re doing to fix it…" />
+<link rel="canonical" href="/2019/11/19/where-did-my-flags-go.html" />
+<meta property="og:url" content="/2019/11/19/where-did-my-flags-go.html" />
+<meta property="og:site_name" content="Running Challenges" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-11-19T20:00:00+00:00" />
+<script type="application/ld+json">
+{"description":"You may have noticed that your flags have disappeared, you can’t save your athlete ID in the options page, your regionnaire badge has disappeared, or you no longer have your NENDY and average parkrun location listed… Read on to find out what broke, why, and what we’re doing to fix it…","headline":"Where did my flags go?","dateModified":"2019-11-19T20:00:00+00:00","datePublished":"2019-11-19T20:00:00+00:00","url":"/2019/11/19/where-did-my-flags-go.html","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/2019/11/19/where-did-my-flags-go.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Running Challenges" /><script async src="https://www.googletagmanager.com/gtag/js?id=UA-115520338-2"></script>
+<script>
+  window['ga-disable-UA-115520338-2'] = window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1";
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-115520338-2');
+</script>
+
+  
+  
+
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Running Challenges</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a><a class="page-link" href="/map/">Special Events Map</a><a class="page-link" href="/badges/">Badges &amp; Stats</a><a class="page-link" href="/faq/">FAQs</a><a class="page-link" href="/getstarted/">Get Started</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Where did my flags go?</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-11-19T20:00:00+00:00" itemprop="datePublished">Nov 19, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>You may have noticed that your flags have disappeared, you can’t save your athlete ID in
+the options page, your regionnaire badge has disappeared, or you no longer have your NENDY 
+and average parkrun location listed… Read on to find out what broke, why, and what we’re doing 
+to fix it…</p>
+
+<h2 id="what-broke">What broke?</h2>
+
+<p>The Running Challenges extension uses the location of parkruns to determine which countries you 
+have been to - adding flags under your badges, to generate the Regionnaire challenge info, as 
+well as work out stats such as your NENDY.</p>
+
+<p>There were also some knock on errors, which wouldn’t have happened if we had coded the extension
+to cope with the event location data being missing, such as saving your profile.</p>
+
+<h2 id="why-did-it-break">Why did it break?</h2>
+
+<p>During the summer the main parkrun website changed the way they generated the event map - 
+out went a XML file (geo.xml) that had existed from the Google Maps days, and in came a 
+JSON file (events.json). The new file was much more efficient to render the event markers 
+on the map, but broke our extension…</p>
+
+<h2 id="has-it-been-fixed">Has it been fixed?</h2>
+
+<p>Yes and no. Most of the extension is back to full strength - the flags are still available, 
+and you’ll still be able to determine your NENDY, but the Regionnaire challenge is missing
+parts. We’ve also made the code more robust if data is missing. It won’t be bulletproof, but 
+hopefully it is better.</p>
+
+<h2 id="the-state-of-the-regionnaire-challenge">The state of the Regionnaire challenge</h2>
+
+<p>The only regions that we now have access to in the events data are the countries, there are no
+subregions in the data we pull down. Not every country had sub-regions before, so for parkrunners in 
+the USA, or most of Europe, there is no change. The UK, Australia, and South Africa were the 
+largest ones with sub-regions, and now all those parkruns are counted against the country at a single 
+level.</p>
+
+<p>As there isn’t any sensible sub-division, the regionnaire challenge badge would effectively only be 
+achieveable for those people who had done every event in a whole country - so it has been removed for now.</p>
+
+<p>The Regionnaire table remains, but now it is more of a parkrun event explorer - showing you how many 
+events you have done in each country, and allowing you to browse them on the map. As yet there is no
+highlighting of which ones have been done, but that’ll probably be re-introduced as time allows.</p>
+
+<h2 id="but-but-i-want-my-regions-back">But, but, I want my regions back!</h2>
+
+<p>If there is a simple and sensible way of making them return, we will try to do so. We don’t want to spend hours
+crafting a list, and we certainly don’t want to be drawn into debates about which region an event should 
+go in. We’ll see how it goes without the information for now, fix a few other things first, and then 
+come back to looking at it again.</p>
+
+<p style="text-align: center;"><a href="https://chrome.google.com/webstore/detail/running-challenges/kdapmdimgdebpgolimjnmcdlkbkddoif"><img src="/img/ChromeWebStore_BadgeWBorder_v2_206x58.png" alt="Running Challenges in the Chrome Web Store" title="Running Challenges in the Chrome Web Store" /></a><a href="https://addons.mozilla.org/en-GB/firefox/addon/running-challenges/"><img src="/img/firefox_web_store-172x60.png" alt="Running Challenges in the Firefox Add-ons Web Store" title="Running Challenges in the Firefox Add-ons Web Store" /></a></p>
+
+  </div><a class="u-url" href="/2019/11/19/where-did-my-flags-go.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Running Challenges</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Running Challenges</li><li><a class="u-email" href="mailto:teamtcmakers@gmail.com">teamtcmakers@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/fraz3alpha"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">fraz3alpha</span></a></li><li><a href="https://www.twitter.com/RunChallenges"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">RunChallenges</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Collect badges and complete challenges for running, jogging, walking, and volunteering at your weekly 5k parkrun. This browser extension adds extra information to your parkrun results page so you can see your progress.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
